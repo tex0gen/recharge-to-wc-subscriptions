@@ -70,61 +70,28 @@ class ReCharge_Exporter {
     return json_decode($result);
   }
 
-  private function get_subscriptions() {
-    $subscription_call = self::recharge_call('https://api.rechargeapps.com/subscriptions', '?limit=250&page=1');
-    $subscriptions[] = $subscription_call->subscriptions;
-    $subscription_count = count($subscription_call->subscriptions);
+  private function get_data($endpoint, $opts = "?limit=250&page=1") {
+    $data_call = self::recharge_call('https://api.rechargeapps.com/'.$endpoint, $opts);
+    $data_arr[] = $data_call->customers;
+    $data_count = count($data_call->customers);
     $i = 1;
 
-    if ($subscription_count > 0) {
-      while ($subscription_count === 250) {
-        $subscription_call = self::recharge_call('https://api.rechargeapps.com/subscriptions', '?limit=250&page='.$i++);
-        array_push($subscriptions, $subscription_call->subscriptions);
-        $subscription_count = count($subscription_call->subscriptions);
+    if ($data_count > 0) {
+      while ($data_count === 250) {
+        $data_call = self::recharge_call('https://api.rechargeapps.com/'.$endpoint, '?limit=250&page='.$i++);
+        $data = $data_call->$endpoint;
+        array_push($data_arr, $data);
+        $data_count = count($data);
       }
     }
 
-    return $subscriptions;
-  }
-
-  private function get_customers() {
-    $customer_call = self::recharge_call('https://api.rechargeapps.com/customers', '?limit=250&page=1');
-    $customers[] = $customer_call->customers;
-    $customer_count = count($customer_call->customers);
-    $i = 1;
-
-    if ($customer_count > 0) {
-      while ($customer_count === 250) {
-        $customer_call = self::recharge_call('https://api.rechargeapps.com/customers', '?limit=250&page='.$i++);
-        array_push($customers, $customer_call->customers);
-        $customer_count = count($customer_call->customers);
-      }
-    }
-
-    return $customers;
-  }
-
-  private function get_charges() {
-    $charges_call = self::recharge_call('https://api.rechargeapps.com/charges', '?date_min='.date('Y-m-d').'T00:00:00&limit=250&page=1');
-    $charges[] = $charges_call->charges;
-    $charges_count = count($charges_call->charges);
-    $i = 1;
-
-    if ($charges_count > 0) {
-      while ($charges_count === 250) {
-        $charges_call = self::recharge_call('https://api.rechargeapps.com/charges', '?date_min='.date('Y-m-d').'T00:00:00&limit=250&page='.$i++);
-        array_push($charges, $charges_call->charges);
-        $charges_count = count($charges_call->charges);
-      }
-    }
-
-    return $charges;
+    return $data_arr;
   }
 
   private function data_factory() {
-    $customers = self::get_customers();
-    // $subscriptions = self::get_subscriptions();
-    // $charges = self::get_charges();
+    $customers = self::get_data('customers');
+    // $subscriptions = self::get_data('subscriptions');
+    // $charges = self::get_data('charges');
 
     $new_array = array();
 
